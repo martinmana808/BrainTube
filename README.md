@@ -1,3 +1,12 @@
+# TO DO
+- AI for summarising videos
+
+# Ideas
+- Users auth
+- BEtter UI more like Serial
+- 
+
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

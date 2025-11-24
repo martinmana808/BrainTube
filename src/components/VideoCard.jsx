@@ -31,7 +31,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
       ${isExiting ? 'opacity-0 scale-95 h-0 mb-0 border-0' : 'h-20 mb-0'}
     `}>
       {/* Thumbnail Section */}
-      <div className="relative w-36 flex-shrink-0 cursor-pointer" onClick={onClick}>
+      <div className="relative w-36 flex-shrink-0 cursor-pointer" onClick={() => onClick(video)}>
         <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-80 transition-opacity" />
         {video.duration && (
           <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-mono px-1 rounded">
@@ -41,7 +41,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
       </div>
       
       {/* Info Section */}
-      <div className="flex-1 p-2 flex flex-col justify-between min-w-0 cursor-pointer" onClick={onClick}>
+      <div className="flex-1 p-2 flex flex-col justify-between min-w-0 cursor-pointer" onClick={() => onClick(video)}>
         <h3 className="text-sm font-medium text-gray-200 line-clamp-2 leading-tight group-hover:text-green-400 transition-colors">
           {video.title}
         </h3>
