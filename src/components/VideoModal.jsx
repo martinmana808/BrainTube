@@ -1,15 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import YouTube from 'react-youtube';
-import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw } from 'lucide-react';
+import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../services/supabase';
+import { generateSummary as generateSummaryService, chatWithVideo } from '../services/ai';
 
 const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onToggleSaved, onDelete }) => {
   const { seen, saved, deleted } = state || {};
+  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'chat'
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [transcript, setTranscript] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [loadingChat, setLoadingChat] = useState(false);
   const [error, setError] = useState(null);
   const playerRef = useRef(null);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -34,50 +41,43 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
     };
   }, [video.id]);
 
-  const generateSummary = async () => {
-    setLoadingSummary(true);
-    setError(null);
+  useEffect(() => {
+    if (activeTab === 'chat' && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, activeTab]);
+
+  const fetchTranscript = async () => {
+    if (transcript) return transcript;
+
     try {
-      // 1. Fetch Transcript via Netlify Function
       const response = await fetch(`/.netlify/functions/get-transcript?videoId=${video.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch transcript');
       }
-      const { transcript } = await response.json();
+      const { transcript: fetchedTranscript } = await response.json();
       
-      if (!transcript) {
+      if (!fetchedTranscript) {
         throw new Error('No transcript available for this video');
       }
+      setTranscript(fetchedTranscript);
+      return fetchedTranscript;
+    } catch (err) {
+      console.error("Error fetching transcript:", err);
+      throw err;
+    }
+  };
 
-      // 2. Call Groq API (Llama 3)
-      const prompt = `Summarize the following YouTube video transcript in a concise, bulleted format. Highlight the key takeaways. \n\nTranscript: ${transcript.substring(0, 25000)}`; // Truncate for Llama 3 context window
-      
-      const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${aiApiKey}`
-        },
-        body: JSON.stringify({
-          messages: [{
-            role: 'user',
-            content: prompt
-          }],
-          model: 'llama-3.3-70b-versatile'
-        })
-      });
-
-      if (!groqResponse.ok) {
-        const errorData = await groqResponse.json();
-        throw new Error(errorData.error?.message || 'Failed to generate summary with Groq');
-      }
-
-      const groqData = await groqResponse.json();
-      const aiSummary = groqData.choices[0].message.content;
+  const generateSummary = async () => {
+    setLoadingSummary(true);
+    setError(null);
+    try {
+      const currentTranscript = await fetchTranscript();
+      const aiSummary = await generateSummaryService(currentTranscript, aiApiKey);
 
       setSummary(aiSummary);
 
-      // 3. Save to Supabase
+      // Save to Supabase
       await supabase.from('video_metadata').upsert({
         video_id: video.id,
         summary: aiSummary,
@@ -89,6 +89,28 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
       setError(err.message);
     } finally {
       setLoadingSummary(false);
+    }
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!chatInput.trim() || loadingChat) return;
+
+    const userMessage = { role: 'user', content: chatInput };
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+    setLoadingChat(true);
+
+    try {
+      const currentTranscript = await fetchTranscript();
+      const aiResponse = await chatWithVideo(currentTranscript, chatMessages, userMessage.content, aiApiKey);
+      
+      setChatMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+    } catch (err) {
+      console.error("Error chatting with video:", err);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error answering your question." }]);
+    } finally {
+      setLoadingChat(false);
     }
   };
 
@@ -148,7 +170,7 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
             <p className="text-sm text-gray-500 font-mono mb-4">{video.channelTitle}</p>
             
             {/* Action Buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-6">
                <button 
                  onClick={() => onToggleSeen(video.id)}
                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors ${seen ? 'bg-gray-800 text-gray-400' : 'bg-gray-800 text-gray-200 hover:bg-gray-700'}`}
@@ -174,48 +196,120 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
                  <span className="text-xs font-bold">{deleted ? 'RESTORE' : 'TRASH'}</span>
                </button>
             </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-800">
+              <button
+                onClick={() => setActiveTab('summary')}
+                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'summary' ? 'text-green-400' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  SUMMARY
+                </div>
+                {activeTab === 'summary' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-400" />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'chat' ? 'text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  CHAT
+                </div>
+                {activeTab === 'chat' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-            {summary ? (
-              <div className="prose prose-invert prose-sm max-w-none">
-                <div className="flex items-center gap-2 text-green-400 mb-4 font-mono text-xs uppercase tracking-wider">
-                  <Sparkles className="w-4 h-4" />
-                  AI Summary
-                </div>
-                <div className="text-gray-300 leading-relaxed">
-                  <ReactMarkdown>{summary}</ReactMarkdown>
-                </div>
+          <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+            {activeTab === 'summary' ? (
+              <div className="p-6">
+                {summary ? (
+                  <div className="prose prose-invert prose-sm max-w-none">
+                    <div className="text-gray-300 leading-relaxed">
+                      <ReactMarkdown>{summary}</ReactMarkdown>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-4 mt-10">
+                    <div className="bg-gray-900 p-4 rounded-full mb-4">
+                      <Sparkles className="w-8 h-8 text-green-500" />
+                    </div>
+                    <h3 className="text-gray-200 font-bold mb-2">No Summary Yet</h3>
+                    <p className="text-gray-500 text-sm mb-6 max-w-xs">
+                      Generate an AI summary to get a quick overview of this video's content.
+                    </p>
+                    <button
+                      onClick={generateSummary}
+                      disabled={loadingSummary}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-black font-bold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loadingSummary ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4" />
+                          Generate Summary
+                        </>
+                      )}
+                    </button>
+                    {error && (
+                      <p className="text-red-500 text-xs mt-4 max-w-xs">{error}</p>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center p-4">
-                <div className="bg-gray-900 p-4 rounded-full mb-4">
-                  <Sparkles className="w-8 h-8 text-green-500" />
-                </div>
-                <h3 className="text-gray-200 font-bold mb-2">No Summary Yet</h3>
-                <p className="text-gray-500 text-sm mb-6 max-w-xs">
-                  Generate an AI summary to get a quick overview of this video's content.
-                </p>
-                <button
-                  onClick={generateSummary}
-                  disabled={loadingSummary}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-black font-bold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loadingSummary ? (
-                    <>
-                      <Loader className="w-4 h-4 animate-spin" />
-                      Generating...
-                    </>
+              <div className="flex flex-col h-full">
+                <div className="flex-1 p-4 space-y-4">
+                  {chatMessages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 mt-10">
+                      <MessageSquare className="w-8 h-8 mb-3 opacity-50" />
+                      <p className="text-sm">Ask anything about this video.</p>
+                    </div>
                   ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      Generate Summary
-                    </>
+                    chatMessages.map((msg, idx) => (
+                      <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[85%] rounded-lg p-3 text-sm ${
+                          msg.role === 'user' 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-800 text-gray-200'
+                        }`}>
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </div>
+                      </div>
+                    ))
                   )}
-                </button>
-                {error && (
-                  <p className="text-red-500 text-xs mt-4 max-w-xs">{error}</p>
-                )}
+                  <div ref={chatEndRef} />
+                </div>
+                
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-800 bg-gray-900">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      placeholder="Ask a question..."
+                      className="w-full bg-gray-800 text-white rounded-lg pl-4 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      disabled={loadingChat}
+                    />
+                    <button 
+                      type="submit"
+                      disabled={!chatInput.trim() || loadingChat}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-blue-400 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {loadingChat ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
           </div>
