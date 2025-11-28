@@ -8,6 +8,7 @@ import VideoModal from './components/VideoModal';
 
 function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('yt_curator_api_key') || import.meta.env.VITE_YOUTUBE_API_KEY || '');
+  const [aiApiKey, setAiApiKey] = useState(() => localStorage.getItem('yt_curator_ai_api_key') || '');
   const [channels, setChannels] = useState([]);
   const [videoStates, setVideoStates] = useState({});
   const [videos, setVideos] = useState([]);
@@ -17,10 +18,14 @@ function App() {
   const [categories, setCategories] = useState([]);
   const [soloChannelIds, setSoloChannelIds] = useState([]);
 
-  // Persistence for API Key
+  // Persistence for API Keys
   useEffect(() => {
     localStorage.setItem('yt_curator_api_key', apiKey);
   }, [apiKey]);
+
+  useEffect(() => {
+    localStorage.setItem('yt_curator_ai_api_key', aiApiKey);
+  }, [aiApiKey]);
 
   // Supabase Data Fetching
   useEffect(() => {
@@ -295,6 +300,8 @@ function App() {
         <SettingsPanel 
           apiKey={apiKey} 
           setApiKey={setApiKey} 
+          aiApiKey={aiApiKey}
+          setAiApiKey={setAiApiKey}
           channels={channels} 
           onAddChannel={addChannel} 
           onRemoveChannel={removeChannel} 
@@ -312,6 +319,11 @@ function App() {
           video={selectedVideo} 
           onClose={() => setSelectedVideo(null)} 
           apiKey={apiKey}
+          aiApiKey={aiApiKey}
+          state={videoStates[selectedVideo.id] || {}}
+          onToggleSeen={toggleSeen}
+          onToggleSaved={toggleSaved}
+          onDelete={deleteVideo}
         />
       )}
     </div>

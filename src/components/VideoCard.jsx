@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ExternalLink, Eye, EyeOff, Heart, Trash2, RotateCcw } from 'lucide-react';
-import { formatDuration } from '../utils/formatters';
+import { formatDuration, parseDurationToSeconds } from '../utils/formatters';
 
 const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClick }) => {
   const { seen, saved, deleted } = state;
@@ -23,6 +23,11 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
     }, 300); // Match transition duration
   };
 
+  // Calculate progress
+  const savedTime = localStorage.getItem(`progress_${video.id}`);
+  const totalSeconds = parseDurationToSeconds(video.duration);
+  const progressPercent = savedTime && totalSeconds ? (parseFloat(savedTime) / totalSeconds) * 100 : 0;
+
   const timeAgo = formatDistanceToNow(new Date(video.publishedAt), { addSuffix: true }).replace('about ', '');
 
   return (
@@ -37,6 +42,15 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
           <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-mono px-1 rounded">
             {formatDuration(video.duration)}
           </span>
+        )}
+        {/* Progress Bar */}
+        {progressPercent > 0 && (
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
+            <div 
+              className="h-full bg-red-600" 
+              style={{ width: `${Math.min(progressPercent, 100)}%` }}
+            />
+          </div>
         )}
       </div>
       
