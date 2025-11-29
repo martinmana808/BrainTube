@@ -1,15 +1,46 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Eye, Folder, ChevronDown, Search } from 'lucide-react';
+import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus } from 'lucide-react';
 
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
   categories, onDeleteCategory, updateChannelCategory,
+  categories, onDeleteCategory, updateChannelCategory,
   searchQuery, onSearchChange,
-  soloCategoryIds, onToggleCategorySolo
+  soloCategoryIds, onToggleCategorySolo,
+  onAddVideoByLink, onAddChannel, onAddCategory, apiKey
 }) => {
   const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
+  const [isAddContentCollapsed, setIsAddContentCollapsed] = useState(true);
+  
+  // Form State
+  const [newChannelId, setNewChannelId] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isAddingChannel, setIsAddingChannel] = useState(false);
+
+  const handleAddChannel = async (e) => {
+    e.preventDefault();
+    if (!newChannelId.trim()) return;
+    
+    setIsAddingChannel(true);
+    try {
+      await onAddChannel(newChannelId);
+      setNewChannelId('');
+    } catch (error) {
+      // Error handled by parent or alert
+      console.error(error);
+    } finally {
+      setIsAddingChannel(false);
+    }
+  };
+
+  const handleAddCategory = (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    onAddCategory(newCategoryName);
+    setNewCategoryName('');
+  };
 
   const toggleCategoryCollapse = (categoryId) => {
     setCollapsedCategories(prev => {
@@ -159,16 +190,113 @@ const SettingsPanel = ({
         </div>
       </div>
 
+      {/* Add Content Section */}
+      <div className="mb-6 border-b border-gray-800 pb-4">
+        <button 
+          onClick={() => setIsAddContentCollapsed(!isAddContentCollapsed)}
+          className="flex items-center justify-between w-full text-left group mb-2"
+        >
+          <h3 className="text-xs font-bold text-blue-500 uppercase tracking-wider font-mono group-hover:text-blue-400 transition-colors">
+            Add Content
+          </h3>
+          <div className={`transition-transform duration-200 ${isAddContentCollapsed ? '-rotate-90' : 'rotate-0'}`}>
+            <ChevronDown className="h-4 w-4 text-gray-500 group-hover:text-gray-300" />
+          </div>
+        </button>
+
+        <AnimatePresence>
+          {!isAddContentCollapsed && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden space-y-4"
+            >
+              {/* Add Video */}
+              <div>
+                 <form onSubmit={(e) => {
+                   e.preventDefault();
+                   const url = e.target.elements.videoUrl.value;
+                   if (url.trim()) {
+                     onAddVideoByLink(url, () => {
+                        e.target.elements.videoUrl.focus();
+                     });
+                     e.target.elements.videoUrl.value = '';
+                   }
+                 }} className="flex gap-2">
+                   <input
+                     name="videoUrl"
+                     type="text"
+                     className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                     placeholder="YouTube URL"
+                   />
+                   <button
+                     type="submit"
+                     disabled={!apiKey}
+                     className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                     title="Add Video"
+                   >
+                     <Plus className="h-4 w-4" />
+                   </button>
+                 </form>
+              </div>
+
+              {/* Add Channel */}
+              <div>
+                 <form onSubmit={handleAddChannel} className="flex gap-2">
+                   <input
+                     type="text"
+                     value={newChannelId}
+                     onChange={(e) => setNewChannelId(e.target.value)}
+                     className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                     placeholder="Channel ID / Handle"
+                   />
+                   <button
+                     type="submit"
+                     disabled={isAddingChannel || !apiKey}
+                     className="bg-gray-800 hover:bg-gray-700 text-gray-300 p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                     title="Add Channel"
+                   >
+                     <Youtube className="h-4 w-4" />
+                   </button>
+                 </form>
+              </div>
+
+              {/* Add Category */}
+              <div>
+                 <form onSubmit={handleAddCategory} className="flex gap-2">
+                   <input
+                     type="text"
+                     value={newCategoryName}
+                     onChange={(e) => setNewCategoryName(e.target.value)}
+                     className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                     placeholder="Category Name"
+                   />
+                   <button
+                     type="submit"
+                     disabled={!newCategoryName.trim()}
+                     className="bg-gray-800 hover:bg-gray-700 text-gray-300 p-1.5 rounded disabled:opacity-50 transition-colors"
+                     title="Add Category"
+                   >
+                     <FolderPlus className="h-4 w-4" />
+                   </button>
+                 </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       <div className="flex-1">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <label className="block text-xs font-mono text-gray-500 uppercase">Monitored Channels [{channels.length}]</label>
-            {soloChannelIds.length > 0 && (
+            {(soloChannelIds.length > 0 || soloCategoryIds.length > 0) && (
               <button 
                 onClick={onClearSolo}
                 className="text-[10px] font-mono uppercase text-red-400 hover:text-red-300 border border-red-900/50 bg-red-900/20 px-2 py-0.5 rounded transition-colors"
               >
-                Clear Solo ({soloChannelIds.length})
+                Clear Solo ({soloChannelIds.length + soloCategoryIds.length})
               </button>
             )}
           </div>

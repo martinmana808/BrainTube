@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Key, Plus, FolderPlus, Youtube } from 'lucide-react';
+import { X, Key } from 'lucide-react';
 
 const SettingsModal = ({ 
   isOpen, 
@@ -8,39 +8,9 @@ const SettingsModal = ({
   apiKey, 
   setApiKey, 
   aiApiKey, 
-  setAiApiKey,
-  setAiApiKey,
-  onAddVideoByLink,
-  onAddChannel,
-  onAddCategory
+  setAiApiKey
 }) => {
   if (!isOpen) return null;
-
-  const [newChannelId, setNewChannelId] = React.useState('');
-  const [newCategoryName, setNewCategoryName] = React.useState('');
-  const [isAddingChannel, setIsAddingChannel] = React.useState(false);
-
-  const handleAddChannel = async (e) => {
-    e.preventDefault();
-    if (!newChannelId.trim()) return;
-    
-    setIsAddingChannel(true);
-    try {
-      await onAddChannel(newChannelId);
-      setNewChannelId('');
-    } catch (error) {
-      // Alert is handled in App.jsx usually, but we might want to show it here or rely on App's alert
-    } finally {
-      setIsAddingChannel(false);
-    }
-  };
-
-  const handleAddCategory = (e) => {
-    e.preventDefault();
-    if (!newCategoryName.trim()) return;
-    onAddCategory(newCategoryName);
-    setNewCategoryName('');
-  };
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
@@ -99,81 +69,6 @@ const SettingsModal = ({
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div>
-             <h3 className="text-sm font-bold text-blue-500 mb-4 uppercase tracking-wider">Content Management</h3>
-             
-             {/* Add Video */}
-             <div className="mb-4">
-                <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">Add Video by Link</label>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  const url = e.target.elements.videoUrl.value;
-                  if (url.trim()) {
-                    onAddVideoByLink(url, () => {
-                       e.target.elements.videoUrl.focus();
-                    });
-                    e.target.elements.videoUrl.value = '';
-                  }
-                }} className="flex gap-2">
-                  <input
-                    name="videoUrl"
-                    type="text"
-                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-blue-500 outline-none px-3 py-2 font-mono"
-                    placeholder="YouTube Video URL"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!apiKey}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </button>
-                </form>
-             </div>
-
-             {/* Add Channel */}
-             <div className="mb-4">
-                <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">Add Channel</label>
-                <form onSubmit={handleAddChannel} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newChannelId}
-                    onChange={(e) => setNewChannelId(e.target.value)}
-                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-blue-500 outline-none px-3 py-2 font-mono"
-                    placeholder="Channel ID / Handle / URL"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isAddingChannel || !apiKey}
-                    className="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <Youtube className="h-5 w-5" />
-                  </button>
-                </form>
-             </div>
-
-             {/* Add Category */}
-             <div className="mb-4">
-                <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">Add Category</label>
-                <form onSubmit={handleAddCategory} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-blue-500 outline-none px-3 py-2 font-mono"
-                    placeholder="Category Name"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!newCategoryName.trim()}
-                    className="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold p-2 rounded disabled:opacity-50 transition-colors"
-                  >
-                    <FolderPlus className="h-5 w-5" />
-                  </button>
-                </form>
-             </div>
-          </div>
         </div>
       </motion.div>
     </div>

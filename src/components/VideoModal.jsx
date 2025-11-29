@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import YouTube from 'react-youtube';
-import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag, Download, Share2, Check } from 'lucide-react';
+import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag, Download, Share2, Check, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../services/supabase';
 import { generateSummary as generateSummaryService, chatWithVideo, generateTags } from '../services/ai';
@@ -20,7 +20,9 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
   const [loadingChat, setLoadingChat] = useState(false);
 
   const [error, setError] = useState(null);
+
   const [copiedShare, setCopiedShare] = useState(false);
+  const [copiedRecord, setCopiedRecord] = useState(false);
   const playerRef = useRef(null);
   const chatEndRef = useRef(null);
 
@@ -185,6 +187,23 @@ ${summary || 'No summary available.'}
     URL.revokeObjectURL(url);
   };
 
+  const handleCopyRecord = () => {
+    const content = `# ${video.title}
+Channel: ${video.channelTitle}
+URL: https://www.youtube.com/watch?v=${video.id}
+Published: ${video.publishedAt}
+
+## Summary
+${summary || 'No summary available.'}
+
+---
+This was created and copied in BrainTube`;
+
+    navigator.clipboard.writeText(content);
+    setCopiedRecord(true);
+    setTimeout(() => setCopiedRecord(false), 2000);
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -279,13 +298,21 @@ ${summary || 'No summary available.'}
                  {deleted ? <RotateCcw className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
                  <span className="text-xs font-bold">{deleted ? 'RESTORE' : 'BIN'}</span>
                </button>
-               <button 
+                <button 
                   onClick={handleDownload}
                   className="flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
                   title="Download Record (.md)"
                 >
                   <Download className="w-4 h-4" />
                   <span className="text-xs font-bold">DOWNLOAD</span>
+                </button>
+                <button 
+                  onClick={handleCopyRecord}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  title="Copy Record to Clipboard"
+                >
+                  {copiedRecord ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  <span className="text-xs font-bold">{copiedRecord ? 'COPIED' : 'COPY'}</span>
                 </button>
                 <button 
                   onClick={handleShare}
