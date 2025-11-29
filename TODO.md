@@ -1,4 +1,4 @@
-QUESTION - prices? grok api? youtube api? What could happen?
+
 TODO - system settings, should be a thing you open and close, you dont need to see it all the time, it is just 'settings', where you eventually gonna configure your BrainTube, your user, etc.
 Because we've done this, 'categories y channels' remains as the third column.
 TODO - Because we already 'solo' or filter by channels on the Categories & Channels column, then we should filter by categories here the same. Categories should be able to be 'Solo-ed' as channels do. 

@@ -9,7 +9,9 @@ import VideoModal from './components/VideoModal';
 import SummaryModal from './components/SummaryModal';
 
 import ConfirmationModal from './components/ConfirmationModal';
+import SettingsModal from './components/SettingsModal';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Settings } from 'lucide-react';
 
 function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('yt_curator_api_key') || import.meta.env.VITE_YOUTUBE_API_KEY || '');
@@ -24,6 +26,9 @@ function App() {
 
   const [categories, setCategories] = useState([]);
   const [soloChannelIds, setSoloChannelIds] = useState([]);
+  const [soloCategoryIds, setSoloCategoryIds] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Modal State
   const [modalConfig, setModalConfig] = useState({
@@ -275,7 +280,20 @@ function App() {
     });
   };
 
-  const clearSolo = () => setSoloChannelIds([]);
+  const clearSolo = () => {
+    setSoloChannelIds([]);
+    setSoloCategoryIds([]);
+  };
+
+  const toggleCategorySolo = (categoryId) => {
+    setSoloCategoryIds(prev => {
+      if (prev.includes(categoryId)) {
+        return prev.filter(id => id !== categoryId);
+      } else {
+        return [...prev, categoryId];
+      }
+    });
+  };
 
   // Category Actions
   const addCategory = async (name) => {
@@ -377,11 +395,31 @@ function App() {
   const sevenDaysAgo = subDays(today, 7);
 
   // Pass ALL videos to columns, let them handle filtering/grouping
-  // Filter videos based on Solo mode
+  // Filter videos based on Solo mode and Search
   const activeVideos = useMemo(() => {
-    if (soloChannelIds.length === 0) return videos;
-    return videos.filter(v => soloChannelIds.includes(v.channelId));
-  }, [videos, soloChannelIds]);
+    let filtered = videos;
+
+    // 1. Solo Filter (Channels OR Categories)
+    if (soloChannelIds.length > 0 || soloCategoryIds.length > 0) {
+      filtered = filtered.filter(v => {
+        const channel = channels.find(c => c.id === v.channelId);
+        const isChannelSolo = soloChannelIds.includes(v.channelId);
+        const isCategorySolo = channel && channel.categoryId && soloCategoryIds.includes(channel.categoryId);
+        return isChannelSolo || isCategorySolo;
+      });
+    }
+
+    // 2. Search Filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(v => 
+        v.title.toLowerCase().includes(query) || 
+        v.channelTitle.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered;
+  }, [videos, soloChannelIds, soloCategoryIds, searchQuery, channels]);
 
   const todayVideos = activeVideos.filter(v => isToday(parseISO(v.publishedAt)));
   
@@ -447,6 +485,7 @@ function App() {
           loading={loading}
           showBin={false}
           showSaved={true}
+          searchQuery={searchQuery} // Pass for highlighting if we want, or just to trigger updates
           {...commonProps}
         />
       </div>
@@ -460,11 +499,12 @@ function App() {
           loading={loading}
           showBin={true}
           showSaved={false}
+          searchQuery={searchQuery}
           {...commonProps}
         />
       </div>
 
-      {/* Right Column: Settings */}
+      {/* Right Column: Explorer */}
       <div className="w-1/3 h-full">
         <SettingsPanel 
           apiKey={apiKey} 
@@ -482,6 +522,10 @@ function App() {
           onDeleteCategory={deleteCategory}
           updateChannelCategory={updateChannelCategory}
           onAddVideoByLink={addVideoByLink}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          soloCategoryIds={soloCategoryIds}
+          onToggleCategorySolo={toggleCategorySolo}
         />
       </div>
 
@@ -528,6 +572,31 @@ function App() {
           />
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            apiKey={apiKey}
+            setApiKey={setApiKey}
+            aiApiKey={aiApiKey}
+            setAiApiKey={setAiApiKey}
+            onAddVideoByLink={addVideoByLink}
+            onAddChannel={addChannel}
+            onAddCategory={addCategory}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Floating Settings Button */}
+      <button
+        onClick={() => setIsSettingsOpen(true)}
+        className="fixed bottom-6 right-6 z-40 p-3 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full shadow-lg transition-colors border border-gray-700"
+        title="System Settings"
+      >
+        <Settings className="w-6 h-6" />
+      </button>
     </div>
   );
 }

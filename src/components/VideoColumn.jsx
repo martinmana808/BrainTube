@@ -3,8 +3,7 @@ import VideoCard from './VideoCard';
 import { Search, ChevronDown, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, onToggleSaved, onDelete, categories = [], channels = [], onVideoClick, loading, onViewSummary, showBin = true, showSaved = false }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, onToggleSaved, onDelete, categories = [], channels = [], onVideoClick, loading, onViewSummary, showBin = true, showSaved = false, searchQuery = '' }) => {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
 
   // Create a map for O(1) channel -> category lookup
@@ -16,17 +15,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
   }, [channels]);
 
   const filteredVideos = videos.filter(v => {
-    // 1. Search Filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      const matchesSearch = (
-        v.title.toLowerCase().includes(query) ||
-        v.channelTitle.toLowerCase().includes(query)
-      );
-      if (!matchesSearch) return false;
-    }
-
-    // 2. Category Filter
+    // 1. Category Filter (Local)
     if (selectedCategoryIds.length > 0) {
       // We need to find the channel ID for this video. 
       // The video object from YouTube API usually has snippet.channelId.
@@ -136,19 +125,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
           {title} <span className="text-gray-600 text-sm ml-2">[{filteredVideos.length - (showBin ? deletedVideos.length : 0)}]</span>
         </h2>
         
-        <div className="relative mb-3">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-600" />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-9 bg-gray-900 border border-gray-800 rounded text-gray-300 text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-1.5 font-mono"
-            placeholder="Filter videos..."
-          />
-        </div>
-
+        
         {/* Category Pills */}
         {categories.length > 0 && (
           <div className="flex flex-wrap gap-2">

@@ -1,42 +1,26 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Plus, Key, Eye, EyeOff, FolderPlus, Folder, ChevronDown } from 'lucide-react';
+import { Trash2, Eye, Folder, ChevronDown, Search } from 'lucide-react';
 
 const SettingsPanel = ({ 
-  apiKey, setApiKey, 
-  aiApiKey, setAiApiKey,
-  channels, onAddChannel, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
-  categories, onAddCategory, onDeleteCategory, updateChannelCategory, onAddVideoByLink
+  channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
+  categories, onDeleteCategory, updateChannelCategory,
+  searchQuery, onSearchChange,
+  soloCategoryIds, onToggleCategorySolo
 }) => {
-  const [newChannelId, setNewChannelId] = useState('');
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [isAddingChannel, setIsAddingChannel] = useState(false);
-  const videoInputRef = useRef(null);
+  const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
+  const [collapsedCategories, setCollapsedCategories] = useState(new Set());
 
-  const handleAddChannel = async (e) => {
-    e.preventDefault();
-    if (!newChannelId.trim()) return;
-    
-    setIsAddingChannel(true);
-    try {
-      await onAddChannel(newChannelId);
-      setNewChannelId('');
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setIsAddingChannel(false);
-    }
-  };
-
-  const handleAddCategory = (e) => {
-    e.preventDefault();
-    if (!newCategoryName.trim()) return;
-    try {
-      onAddCategory(newCategoryName);
-      setNewCategoryName('');
-    } catch (error) {
-      alert(error.message);
-    }
+  const toggleCategoryCollapse = (categoryId) => {
+    setCollapsedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
   };
 
   // Group channels by category
@@ -151,133 +135,28 @@ const SettingsPanel = ({
     </div>
   );
 
-  const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
-  const [collapsedCategories, setCollapsedCategories] = useState(new Set());
 
-  const toggleCategoryCollapse = (categoryId) => {
-    setCollapsedCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(categoryId)) {
-        newSet.delete(categoryId);
-      } else {
-        newSet.add(categoryId);
-      }
-      return newSet;
-    });
-  };
 
   return (
     <div className="flex flex-col h-full bg-gray-900 p-4 overflow-y-auto border-l border-gray-800">
       <h2 className="text-lg font-bold text-green-500 mb-6 font-mono uppercase tracking-wider border-b border-gray-800 pb-2">
-        System Config
+        Explorer
       </h2>
 
-      <div className="mb-8">
-        <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">YouTube Data API Key</label>
+      {/* Global Search */}
+      <div className="mb-6">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Key className="h-4 w-4 text-gray-600" />
+            <Search className="h-4 w-4 text-gray-500" />
           </div>
           <input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="block w-full pl-10 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-2 font-mono"
-            placeholder="Enter YouTube API Key"
+            placeholder="Search videos..."
           />
         </div>
-        <p className="text-[10px] text-gray-600 mt-1">Required for fetching video data.</p>
-      </div>
-
-      <div className="mb-8">
-        <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">Groq API Key (AI Summary)</label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Key className="h-4 w-4 text-gray-600" />
-          </div>
-          <input
-            type="password"
-            value={aiApiKey}
-            onChange={(e) => setAiApiKey(e.target.value)}
-            className="block w-full pl-10 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-2 font-mono"
-            placeholder="Enter Groq API Key"
-          />
-        </div>
-        <p className="text-[10px] text-gray-600 mt-1">
-          Required for AI summaries. Get a free key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-green-500 hover:underline">console.groq.com</a>
-        </p>
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">Add Channel</label>
-        <form onSubmit={handleAddChannel} className="flex gap-2">
-          <input
-            type="text"
-            value={newChannelId}
-            onChange={(e) => setNewChannelId(e.target.value)}
-            className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 outline-none px-3 py-2 font-mono"
-            placeholder="Channel ID / Handle / URL"
-          />
-          <button
-            type="submit"
-            disabled={isAddingChannel || !apiKey}
-            className="bg-green-600 hover:bg-green-700 text-black font-bold p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-          </button>
-        </form>
-        <p className="text-[10px] text-gray-600 mt-1">Enter Channel ID, Handle (@name), or URL</p>
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">Add Video by Link</label>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          const url = e.target.elements.videoUrl.value;
-          if (url.trim()) {
-            onAddVideoByLink(url, () => {
-              // Callback for "Add another video" - focus input
-              setTimeout(() => videoInputRef.current?.focus(), 100);
-            });
-            e.target.elements.videoUrl.value = '';
-          }
-        }} className="flex gap-2">
-          <input
-            ref={videoInputRef}
-            name="videoUrl"
-            type="text"
-            className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 outline-none px-3 py-2 font-mono"
-            placeholder="YouTube Video URL"
-          />
-          <button
-            type="submit"
-            disabled={!apiKey}
-            className="bg-green-600 hover:bg-green-700 text-black font-bold p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Plus className="h-5 w-5" />
-          </button>
-        </form>
-        <p className="text-[10px] text-gray-600 mt-1">Paste a YouTube video link to save it directly.</p>
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">Add Category</label>
-        <form onSubmit={handleAddCategory} className="flex gap-2">
-          <input
-            type="text"
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 outline-none px-3 py-2 font-mono"
-            placeholder="Category Name"
-          />
-          <button
-            type="submit"
-            disabled={!newCategoryName.trim()}
-            className="bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold p-2 rounded disabled:opacity-50 transition-colors"
-          >
-            <FolderPlus className="h-5 w-5" />
-          </button>
-        </form>
       </div>
 
       <div className="flex-1">
@@ -342,12 +221,23 @@ const SettingsPanel = ({
                       {cat.name}
                       <span className="text-gray-600">[{groupedChannels[cat.id]?.length || 0}]</span>
                     </button>
-                    <button 
-                      onClick={() => onDeleteCategory(cat.id)}
-                      className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                       <button
+                        onClick={() => onToggleCategorySolo(cat.id)}
+                        className={`p-1 rounded hover:bg-gray-800 transition-colors ${
+                          soloCategoryIds.includes(cat.id) ? 'text-green-500' : 'text-gray-600 hover:text-gray-400'
+                        }`}
+                        title={soloCategoryIds.includes(cat.id) ? "Un-solo Category" : "Solo this Category"}
+                      >
+                        {soloCategoryIds.includes(cat.id) ? <Eye className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      </button>
+                      <button 
+                        onClick={() => onDeleteCategory(cat.id)}
+                        className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
                   </div>
                   <AnimatePresence>
                     {!isCollapsed && (
