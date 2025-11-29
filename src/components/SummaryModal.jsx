@@ -1,9 +1,38 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Sparkles, Loader, Play } from 'lucide-react';
+import { X, Sparkles, Loader, Play, Copy, Download, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useState } from 'react';
 
 const SummaryModal = ({ video, summary, onClose, loading, onWatch }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (!summary) return;
+    navigator.clipboard.writeText(summary);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    const content = `# ${video.title}
+Channel: ${video.channelTitle}
+URL: https://www.youtube.com/watch?v=${video.id}
+Published: ${video.publishedAt}
+
+## Summary
+${summary || 'No summary available.'}
+`;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${video.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_summary.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -55,9 +84,31 @@ const SummaryModal = ({ video, summary, onClose, loading, onWatch }) => {
         {/* Content */}
         <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
           <div className="prose prose-invert prose-sm max-w-none">
-            <div className="flex items-center gap-2 text-green-400 mb-4 font-mono text-xs uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" />
-              AI Summary
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-green-400 font-mono text-xs uppercase tracking-wider">
+                <Sparkles className="w-4 h-4" />
+                AI Summary
+              </div>
+              {!loading && summary && (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={handleCopy}
+                    className="flex items-center gap-1 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-xs transition-colors"
+                    title="Copy Summary"
+                  >
+                    {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                    {copied ? 'Copied' : 'Copy'}
+                  </button>
+                  <button 
+                    onClick={handleDownload}
+                    className="flex items-center gap-1 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-xs transition-colors"
+                    title="Download Record (.md)"
+                  >
+                    <Download className="w-3 h-3" />
+                    Download
+                  </button>
+                </div>
+              )}
             </div>
             <div className="text-gray-300 leading-relaxed">
               {loading ? (

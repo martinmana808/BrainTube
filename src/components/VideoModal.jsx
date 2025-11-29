@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import YouTube from 'react-youtube';
-import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag } from 'lucide-react';
+import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag, Download } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../services/supabase';
 import { generateSummary as generateSummaryService, chatWithVideo, generateTags } from '../services/ai';
@@ -144,6 +144,26 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
   };
 */
 
+  const handleDownload = () => {
+    const content = `# ${video.title}
+Channel: ${video.channelTitle}
+URL: https://www.youtube.com/watch?v=${video.id}
+Published: ${video.publishedAt}
+
+## Summary
+${summary || 'No summary available.'}
+`;
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${video.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_record.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -238,6 +258,14 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
                  {deleted ? <RotateCcw className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
                  <span className="text-xs font-bold">{deleted ? 'RESTORE' : 'BIN'}</span>
                </button>
+               <button 
+                  onClick={handleDownload}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  title="Download Record (.md)"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="text-xs font-bold">DOWNLOAD</span>
+                </button>
             </div>
 
             {/* Tabs */}
