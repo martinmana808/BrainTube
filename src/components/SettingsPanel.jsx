@@ -184,7 +184,7 @@ const SettingsPanel = ({
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
         </div>
-      <div className="p-4 pt-0">
+      <div className="p-4 pt-0 pb-20">
 
         {/* Global Search */}
       <div className="mb-6 h-8">
