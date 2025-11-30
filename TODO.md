@@ -1,0 +1,4 @@
+- Search should not always be there 'open'. Should be the magnifying glass icon, click, and then the input opens, or something like that. 
+- Theme selector Dark/Bright
+- Add video, add channel, add category should be nicer buttons. 
+- Explorer column should have padding at the bottom so if you scroll to the bottom, the floating settings button is not overlaying.

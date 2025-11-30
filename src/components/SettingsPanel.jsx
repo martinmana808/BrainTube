@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus } from 'lucide-react';
+import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X } from 'lucide-react';
 
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
@@ -13,6 +13,7 @@ const SettingsPanel = ({
   const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
   const [activeAddMode, setActiveAddMode] = useState(null); // 'video', 'channel', 'category', null
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   // Form State
   const [newChannelId, setNewChannelId] = useState('');
@@ -176,20 +177,53 @@ const SettingsPanel = ({
       <div className="p-4">
 
         {/* Global Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-500" />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="block w-full pl-10 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-2 font-mono"
-              placeholder="Search videos..."
-            />
-          </div>
-        </div>
+      <div className="mb-6 h-8">
+        <AnimatePresence mode="wait">
+          {!isSearchOpen && !searchQuery ? (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-300 transition-colors w-full"
+            >
+              <Search className="h-4 w-4" />
+              <span className="text-xs font-mono uppercase tracking-wider">Search</span>
+            </motion.button>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: '100%' }}
+              exit={{ opacity: 0, width: 0 }}
+              className="relative"
+            >
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-500" />
+              </div>
+              <input
+                autoFocus
+                type="text"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="block w-full pl-10 pr-8 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-1.5 font-mono"
+                placeholder="Search..."
+                onBlur={() => {
+                  if (!searchQuery) setIsSearchOpen(false);
+                }}
+              />
+              <button
+                onClick={() => {
+                  onSearchChange('');
+                  setIsSearchOpen(false);
+                }}
+                className="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-300"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
         {/* Add Content Section */}
         <div className="mb-6 border-b border-gray-800">
