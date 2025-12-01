@@ -465,7 +465,7 @@ const SettingsPanel = ({
                     <div className="flex items-center justify-between mb-2 group">
                       <button 
                         onClick={() => toggleCategoryCollapse(cat.id)}
-                        className="flex items-center gap-2 text-gray-400 font-mono text-xs uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                        className="flex items-center gap-2 text-gray-600 dark:text-gray-400 font-mono text-xs uppercase tracking-wider hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
                       >
                         <div className={`transition-transform duration-200 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}>
                           <ChevronDown className="h-3 w-3" />
@@ -486,7 +486,7 @@ const SettingsPanel = ({
                         </button>
                         <button 
                           onClick={() => onDeleteCategory(cat.id)}
-                          className="p-1 rounded text-gray-600 hover:text-red-600 dark:hover:text-red-500 hover:bg-gray-200 dark:hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-all"
+                          className="p-1 rounded text-gray-400 hover:text-red-600 dark:hover:text-red-500 hover:bg-gray-200 dark:hover:bg-gray-800 transition-all"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -516,7 +516,7 @@ const SettingsPanel = ({
               <div>
                 <button 
                   onClick={() => toggleCategoryCollapse('uncategorized')}
-                  className="flex items-center gap-2 mb-2 text-gray-500 font-mono text-xs uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="flex items-center gap-2 mb-2 text-gray-600 dark:text-gray-400 font-mono text-xs uppercase tracking-wider hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
                 >
                   <div className={`transition-transform duration-200 ${collapsedCategories.has('uncategorized') ? '-rotate-90' : 'rotate-0'}`}>
                     <ChevronDown className="h-3 w-3" />
