@@ -182,8 +182,7 @@ const SettingsPanel = ({
 
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 transition-colors duration-200">
-      {/* Fixed App Header */}
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-200 relative">
       {/* Fixed App Header */}
       <div className="flex-none h-[88px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10 flex items-center px-4 gap-3">
         {/* Logo */}
@@ -193,64 +192,10 @@ const SettingsPanel = ({
           </div>
           <span className="font-bold text-lg tracking-tight text-gray-900 dark:text-white hidden xl:block">BrainTube</span>
         </div>
-
-        {/* User Profile Card */}
-        <div className="flex-1 flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-700 flex-shrink-0">
-            {user?.user_metadata?.avatar_url ? (
-              <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-4 h-4 text-gray-400" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">
-              {user?.user_metadata?.full_name || 'User'}
-            </div>
-            <div className="text-[10px] text-gray-500 truncate">
-              {user?.app_metadata?.provider ? `Via ${user.app_metadata.provider}` : user?.email}
-            </div>
-          </div>
-          
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 ${
-              theme === 'dark' ? 'bg-blue-500/10' : 'bg-gray-300'
-            }`}
-            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            <span
-              className={`${
-                theme === 'dark' ? 'translate-x-4 bg-white' : 'translate-x-1 '
-              } bg-gray-500 inline-block h-3 w-3 transform rounded-full  transition-transform duration-200`}
-            />
-          </button>
-
-          <div className="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-2 ml-1">
-            <button
-              onClick={onOpenSettings}
-              className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
-              title="Settings"
-            >
-              <Settings className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={async () => {
-                await supabase.auth.signOut();
-                navigate('/login');
-              }}
-              className="p-1.5 text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              title="Sign Out"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-4 pt-4 mt-4 pb-20">
+      <div className="flex-1 overflow-y-auto p-4 pt-4 pb-20">
 
         {/* Global Search - Always Visible */}
         <div className="mb-6">
@@ -544,6 +489,62 @@ const SettingsPanel = ({
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Fixed User Profile Card at Bottom */}
+      <div className="flex-none p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10">
+        <div className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-700 flex-shrink-0">
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-4 h-4 text-gray-400" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">
+              {user?.user_metadata?.full_name || 'User'}
+            </div>
+            <div className="text-[10px] text-gray-500 truncate">
+              {user?.app_metadata?.provider ? `Via ${user.app_metadata.provider}` : user?.email}
+            </div>
+          </div>
+          
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 ${
+              theme === 'dark' ? 'bg-blue-500/10' : 'bg-gray-300'
+            }`}
+            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            <span
+              className={`${
+                theme === 'dark' ? 'translate-x-4 bg-white' : 'translate-x-1 '
+              } bg-gray-500 inline-block h-3 w-3 transform rounded-full  transition-transform duration-200`}
+            />
+          </button>
+
+          <div className="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-2 ml-1">
+            <button
+              onClick={onOpenSettings}
+              className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              title="Settings"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate('/login');
+              }}
+              className="p-1.5 text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -507,36 +507,8 @@ function Dashboard() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-white dark:bg-black text-gray-900 dark:text-gray-300 font-sans transition-colors duration-200">
-      {/* Left Column: Past 7 Days */}
-      <div className="w-1/3 h-full">
-        <VideoColumn 
-          title="Past 7 Days & Saved" 
-          videos={pastVideos} 
-          emptyMessage="No recent videos"
-          loading={loading}
-          showBin={false}
-          showSaved={true}
-          searchQuery={searchQuery} // Pass for highlighting if we want, or just to trigger updates
-          {...commonProps}
-        />
-      </div>
-
-      {/* Middle Column: Today */}
-      <div className="w-1/3 h-full border-l border-gray-200 dark:border-gray-800">
-        <VideoColumn 
-          title="Today" 
-          videos={todayVideos} 
-          emptyMessage="No videos today"
-          loading={loading}
-          showBin={true}
-          showSaved={false}
-          searchQuery={searchQuery}
-          {...commonProps}
-        />
-      </div>
-
-      {/* Right Column: Explorer */}
-      <div className="w-1/3 h-full">
+      {/* Left Column: Explorer */}
+      <div className="w-1/3 h-full border-r border-gray-200 dark:border-gray-800">
         <SettingsPanel 
           apiKey={apiKey} 
           setApiKey={setApiKey} 
@@ -560,6 +532,34 @@ function Dashboard() {
           theme={theme}
           toggleTheme={toggleTheme}
           onOpenSettings={() => setIsSettingsOpen(true)}
+        />
+      </div>
+
+      {/* Middle Column: Today */}
+      <div className="w-1/3 h-full border-r border-gray-200 dark:border-gray-800">
+        <VideoColumn 
+          title="Today" 
+          videos={todayVideos} 
+          emptyMessage="No videos today"
+          loading={loading}
+          showBin={true}
+          showSaved={false}
+          searchQuery={searchQuery}
+          {...commonProps}
+        />
+      </div>
+
+      {/* Right Column: Past 7 Days */}
+      <div className="w-1/3 h-full">
+        <VideoColumn 
+          title="Past 7 Days & Saved" 
+          videos={pastVideos} 
+          emptyMessage="No recent videos"
+          loading={loading}
+          showBin={false}
+          showSaved={true}
+          searchQuery={searchQuery} // Pass for highlighting if we want, or just to trigger updates
+          {...commonProps}
         />
       </div>
 
