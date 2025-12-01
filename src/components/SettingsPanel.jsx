@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User, Settings, LogOut } from 'lucide-react';
+import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User, Settings, LogOut, Brain } from 'lucide-react';
 
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
@@ -183,9 +183,17 @@ const SettingsPanel = ({
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 transition-colors duration-200">
       {/* Fixed App Header */}
       {/* Fixed App Header */}
-      <div className="flex-none h-[88px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10 flex items-center px-4">
+      <div className="flex-none h-[88px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10 flex items-center px-4 gap-3">
+        {/* Logo */}
+        <div className="flex items-center gap-2">
+          <div className="bg-gray-900 dark:bg-white p-1.5 rounded-lg">
+            <Brain className="w-5 h-5 text-white dark:text-black" />
+          </div>
+          <span className="font-bold text-lg tracking-tight text-gray-900 dark:text-white hidden xl:block">BrainTube</span>
+        </div>
+
         {/* User Profile Card */}
-        <div className="w-full flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+        <div className="flex-1 flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
           <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-700 flex-shrink-0">
             {user?.user_metadata?.avatar_url ? (
               <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
@@ -206,14 +214,14 @@ const SettingsPanel = ({
           <button
             onClick={toggleTheme}
             className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 ${
-              theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'
+              theme === 'dark' ? 'bg-blue-500/10' : 'bg-gray-300'
             }`}
             title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             <span
               className={`${
-                theme === 'dark' ? 'translate-x-4' : 'translate-x-1'
-              } inline-block h-3 w-3 transform rounded-full bg-white transition-transform duration-200`}
+                theme === 'dark' ? 'translate-x-4 bg-white' : 'translate-x-1 '
+              } bg-gray-500 inline-block h-3 w-3 transform rounded-full  transition-transform duration-200`}
             />
           </button>
 
@@ -240,7 +248,7 @@ const SettingsPanel = ({
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-4 pt-4 pb-20">
+      <div className="flex-1 overflow-y-auto p-4 pt-4 mt-4 pb-20">
 
         {/* Global Search - Always Visible */}
         <div className="mb-6">
@@ -267,7 +275,7 @@ const SettingsPanel = ({
         </div>
 
         {/* Add Content Section */}
-        <div className="mb-6 border-b border-gray-200 dark:border-gray-800 pb-6">
+        <div className="mb-4 border-gray-200 dark:border-gray-800 pb-4">
           <div className="grid grid-cols-3 gap-3">
             <button
               onClick={() => setActiveAddMode(activeAddMode === 'video' ? null : 'video')}
