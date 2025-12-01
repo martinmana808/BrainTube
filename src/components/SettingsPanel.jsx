@@ -19,6 +19,7 @@ const SettingsPanel = ({
   const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
   const [activeAddMode, setActiveAddMode] = useState(null); // 'video', 'channel', 'category', null
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   // Form State
   const [newChannelId, setNewChannelId] = useState('');
@@ -181,28 +182,8 @@ const SettingsPanel = ({
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 transition-colors duration-200">
       {/* Fixed App Header */}
-      <div className="flex-none h-[140px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10 p-4 flex flex-col justify-between">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 font-mono uppercase tracking-wider">
-            APP
-          </h2>
-          
-          {/* Delicate Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 ${
-              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'
-            }`}
-            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          >
-            <span
-              className={`${
-                theme === 'dark' ? 'translate-x-4 bg-gray-950' : 'translate-x-1 bg-white'
-              } inline-block h-3.5 w-3.5 transform rounded-full transition-transform duration-200 shadow-sm`}
-            />
-          </button>
-        </div>
-
+      {/* Fixed App Header */}
+      <div className="flex-none h-[88px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10 flex items-center px-4">
         {/* User Profile Card */}
         <div className="w-full flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
           <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-700 flex-shrink-0">
@@ -217,10 +198,26 @@ const SettingsPanel = ({
               {user?.user_metadata?.full_name || 'User'}
             </div>
             <div className="text-[10px] text-gray-500 truncate">
-              {user?.app_metadata?.provider ? `Logged in via ${user.app_metadata.provider}` : user?.email}
+              {user?.app_metadata?.provider ? `Via ${user.app_metadata.provider}` : user?.email}
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 ${
+              theme === 'dark' ? 'bg-blue-600' : 'bg-gray-300'
+            }`}
+            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            <span
+              className={`${
+                theme === 'dark' ? 'translate-x-4' : 'translate-x-1'
+              } inline-block h-3 w-3 transform rounded-full bg-white transition-transform duration-200`}
+            />
+          </button>
+
+          <div className="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-2 ml-1">
             <button
               onClick={onOpenSettings}
               className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -245,7 +242,7 @@ const SettingsPanel = ({
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-4 pt-4 pb-20">
 
-        {/* Global Search - Redesigned */}
+        {/* Global Search - Always Visible */}
         <div className="mb-6">
           <div className="relative group">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -255,13 +252,13 @@ const SettingsPanel = ({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="block w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-gray-900 dark:text-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-mono transition-all shadow-sm group-hover:border-gray-300 dark:group-hover:border-gray-700"
-              placeholder="SEARCH..."
+              className="block w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm text-sm font-medium"
+              placeholder="Search videos..."
             />
             {searchQuery && (
               <button
                 onClick={() => onSearchChange('')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <X className="h-4 w-4" />
               </button>

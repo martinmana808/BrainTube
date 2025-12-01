@@ -88,11 +88,10 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 last:border-r-0 transition-colors duration-200">
-      <div className="flex-none h-[140px] border-b border-gray-200 dark:border-gray-800 p-4 flex flex-col justify-between">
+      <div className="flex-none h-[88px] border-b border-gray-200 dark:border-gray-800 flex items-center px-4 mb-4 bg-white dark:bg-black z-10">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           {title} <span className="text-gray-500 dark:text-gray-600 text-sm ml-2">[{filteredVideos.length - (showBin ? deletedVideos.length : 0)}]</span>
         </h2>
-        
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
