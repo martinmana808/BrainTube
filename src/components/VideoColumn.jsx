@@ -13,6 +13,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
   const savedVideos = showSaved ? filteredVideos.filter(v => videoStates?.[v.id]?.saved && !videoStates?.[v.id]?.deleted) : [];
   
   // Active/Seen should exclude saved videos IF showSaved is true
+  // If showSaved is true, saved videos are handled in the Saved section, so we exclude them from Active/Seen
   const activeVideos = filteredVideos.filter(v => 
     !videoStates?.[v.id]?.seen && 
     !videoStates?.[v.id]?.deleted && 

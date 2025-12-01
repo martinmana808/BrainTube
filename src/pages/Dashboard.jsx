@@ -445,13 +445,20 @@ function Dashboard() {
     return filtered;
   }, [videos, soloChannelIds, soloCategoryIds, searchQuery, channels]);
 
-  const todayVideos = activeVideos.filter(v => isToday(parseISO(v.publishedAt)));
+  const todayVideos = activeVideos.filter(v => {
+    const isSaved = videoStates[v.id]?.saved;
+    return isToday(parseISO(v.publishedAt)) && !isSaved;
+  });
   
   const pastVideos = activeVideos.filter(v => {
     const date = parseISO(v.publishedAt);
     const isSaved = videoStates[v.id]?.saved;
-    // Include if it's NOT today AND (within last 7 days OR is saved)
-    return !isToday(date) && (isWithinInterval(date, { start: sevenDaysAgo, end: today }) || isSaved);
+    
+    // Always include saved videos in this column (which has the Saved section)
+    if (isSaved) return true;
+
+    // Otherwise, include if it's NOT today AND within last 7 days
+    return !isToday(date) && isWithinInterval(date, { start: sevenDaysAgo, end: today });
   });
 
   const commonProps = {
