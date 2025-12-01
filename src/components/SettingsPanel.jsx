@@ -178,7 +178,7 @@ const SettingsPanel = ({
           </h2>
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
+            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
             title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -389,7 +389,7 @@ const SettingsPanel = ({
                 onClick={() => setViewMode('categories')}
                 className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
                   viewMode === 'categories' 
-                    ? 'bg-gray-800' 
+                    ? 'bg-gray-950' 
                     : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
                 }`}
               >
@@ -399,7 +399,7 @@ const SettingsPanel = ({
                 onClick={() => setViewMode('all')}
                 className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
                   viewMode === 'all' 
-                    ? 'bg-gray-800' 
+                    ? 'bg-gray-950' 
                     : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
                 }`}
               >
