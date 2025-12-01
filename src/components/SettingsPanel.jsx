@@ -19,7 +19,6 @@ const SettingsPanel = ({
   const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
   const [activeAddMode, setActiveAddMode] = useState(null); // 'video', 'channel', 'category', null
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   
   // Form State
   const [newChannelId, setNewChannelId] = useState('');
@@ -182,43 +181,39 @@ const SettingsPanel = ({
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 transition-colors duration-200">
       {/* Fixed App Header */}
-      <div className="flex-none p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10">
-        <div className="flex items-center justify-between mb-4">
+      <div className="flex-none h-[140px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10 p-4 flex flex-col justify-between">
+        <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 font-mono uppercase tracking-wider">
             APP
           </h2>
           
-          {/* Theme Toggle */}
+          {/* Delicate Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              theme === 'dark' ? 'bg-blue-600' : 'bg-gray-200'
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 ${
+              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'
             }`}
             title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             <span
               className={`${
-                theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
-              } inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200`}
+                theme === 'dark' ? 'translate-x-4 bg-gray-950' : 'translate-x-1 bg-white'
+              } inline-block h-3.5 w-3.5 transform rounded-full transition-transform duration-200 shadow-sm`}
             />
-            <span className="absolute inset-0 flex items-center justify-between px-1.5 pointer-events-none">
-               <Sun className={`w-3 h-3 text-yellow-500 ${theme === 'dark' ? 'opacity-0' : 'opacity-100'} transition-opacity`} />
-               <Moon className={`w-3 h-3 text-white ${theme === 'dark' ? 'opacity-100' : 'opacity-0'} transition-opacity`} />
-            </span>
           </button>
         </div>
 
         {/* User Profile Card */}
-        <div className="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
-          <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-700 flex-shrink-0">
+        <div className="w-full flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-700 flex-shrink-0">
             {user?.user_metadata?.avatar_url ? (
               <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
             ) : (
-              <User className="w-5 h-5 text-gray-400" />
+              <User className="w-4 h-4 text-gray-400" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+            <div className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">
               {user?.user_metadata?.full_name || 'User'}
             </div>
             <div className="text-[10px] text-gray-500 truncate">
@@ -228,20 +223,20 @@ const SettingsPanel = ({
           <div className="flex items-center gap-1">
             <button
               onClick={onOpenSettings}
-              className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
               title="Settings"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={async () => {
                 await supabase.auth.signOut();
                 navigate('/login');
               }}
-              className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              className="p-1.5 text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
               title="Sign Out"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -250,54 +245,29 @@ const SettingsPanel = ({
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-4 pt-4 pb-20">
 
-        {/* Global Search */}
-      <div className="mb-6 h-8">
-        <AnimatePresence mode="wait">
-          {!isSearchOpen && !searchQuery ? (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors w-full"
-            >
-              <Search className="h-4 w-4" />
-              <span className="text-xs font-mono uppercase tracking-wider">Search</span>
-            </motion.button>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: '100%' }}
-              exit={{ opacity: 0, width: 0 }}
-              className="relative"
-            >
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-              </div>
-              <input
-                autoFocus
-                type="text"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="block w-full pl-10 pr-8 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded text-gray-900 dark:text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-1.5 font-mono transition-colors"
-                placeholder="Search..."
-                onBlur={() => {
-                  if (!searchQuery) setIsSearchOpen(false);
-                }}
-              />
+        {/* Global Search - Redesigned */}
+        <div className="mb-6">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="block w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl text-gray-900 dark:text-gray-300 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none font-mono transition-all shadow-sm group-hover:border-gray-300 dark:group-hover:border-gray-700"
+              placeholder="SEARCH..."
+            />
+            {searchQuery && (
               <button
-                onClick={() => {
-                  onSearchChange('');
-                  setIsSearchOpen(false);
-                }}
-                className="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                onClick={() => onSearchChange('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            )}
+          </div>
+        </div>
 
         {/* Add Content Section */}
         <div className="mb-6 border-b border-gray-200 dark:border-gray-800 pb-6">
@@ -438,7 +408,7 @@ const SettingsPanel = ({
         <div className="flex-1">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <label className="block text-xs font-mono text-gray-500 uppercase">Monitored Channels [{channels.length}]</label>
+              <label className="block text-xs font-mono text-gray-500 uppercase">Channels [{channels.length}]</label>
               {(soloChannelIds.length > 0 || soloCategoryIds.length > 0) && (
                 <button 
                   onClick={onClearSolo}
