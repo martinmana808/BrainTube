@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User } from 'lucide-react';
+import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User, Settings, LogOut } from 'lucide-react';
 
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
@@ -11,7 +11,8 @@ const SettingsPanel = ({
   searchQuery, onSearchChange,
   soloCategoryIds, onToggleCategorySolo,
   onAddVideoByLink, onAddChannel, onAddCategory, apiKey,
-  theme, toggleTheme
+  theme, toggleTheme,
+  onOpenSettings
 }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -195,11 +196,8 @@ const SettingsPanel = ({
 
         {/* User Profile Card */}
         <div className="px-4 mb-6">
-          <button 
-            onClick={() => navigate('/profile')}
-            className="w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl hover:border-gray-300 dark:hover:border-gray-700 transition-all group text-left shadow-sm"
-          >
-            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
+          <div className="w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700 flex-shrink-0">
               {user?.user_metadata?.avatar_url ? (
                 <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
               ) : (
@@ -214,7 +212,26 @@ const SettingsPanel = ({
                 {user?.email}
               </div>
             </div>
-          </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={onOpenSettings}
+                className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                title="Settings"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  navigate('/login');
+                }}
+                className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       <div className="p-4 pt-0 pb-20">
 

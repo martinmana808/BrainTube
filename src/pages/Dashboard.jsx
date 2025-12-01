@@ -552,6 +552,7 @@ function Dashboard() {
           onToggleCategorySolo={toggleCategorySolo}
           theme={theme}
           toggleTheme={toggleTheme}
+          onOpenSettings={() => setIsSettingsOpen(true)}
         />
       </div>
 
@@ -614,15 +615,6 @@ function Dashboard() {
           />
         )}
       </AnimatePresence>
-
-      {/* Floating Settings Button */}
-      <button
-        onClick={() => setIsSettingsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 p-3 bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white rounded-full shadow-lg transition-colors border border-gray-700"
-        title="System Settings"
-      >
-        <Settings className="w-6 h-6" />
-      </button>
     </div>
   );
 }
