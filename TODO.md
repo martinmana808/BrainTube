@@ -6,5 +6,9 @@
 - get proper color coding for CHAT and SUMMARY in the video modals
 - standarise Soloing in expanded view
 - buttons per channel are dissapearing if not hovering
-- make light theme default
 - make instructional video
+- categorie NO CATEGORY cannot be selected if it already has a categoryu. 
+- category dropdown is hidden by parent container overflow hidden, needs to either have zindex, or something similar. 
+- on big video modal, you should be able to go right next left previous. 
+- Full screen live view? Like instagram and seek it up?
+- mini modal is not generating summary

@@ -33,11 +33,11 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
   return (
     <div className={`flex bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden group transition-all duration-300 ease-in-out
       ${isMounting ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}
-      ${isExiting ? 'opacity-0 scale-95 h-0 mb-0 border-0' : 'h-20 mb-0'}
+      ${isExiting ? 'opacity-0 scale-100 mb-0' : 'h-20 mb-0'}
     `}>
       {/* Thumbnail Section */}
       <div className="relative w-36 flex-shrink-0 cursor-pointer" onClick={() => onClick(video)}>
-        <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-80 transition-opacity" />
+        <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover transition-opacity" />
         {video.duration && (
           <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-mono px-1 rounded">
             {formatDuration(video.duration)}
@@ -84,7 +84,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
                 className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 title={saved ? "Unsave" : "Save for Later"}
               >
-                <Heart className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
+                <Heart className={`w-4 h-4 ${saved ? 'text-gray-900' : ''}`} />
               </button>
               <button 
                 onClick={(e) => { 

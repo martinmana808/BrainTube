@@ -25,6 +25,7 @@ const Login = () => {
           redirectTo: `${window.location.origin}/`
         }
       });
+      console.log('Redirecting to:', `${window.location.origin}/`); // Debug log
       if (error) throw error;
     } catch (error) {
       console.error('Error logging in with Google:', error.message);

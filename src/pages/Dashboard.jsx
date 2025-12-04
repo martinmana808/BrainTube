@@ -19,7 +19,7 @@ function Dashboard() {
   const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
   const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [channels, setChannels] = useState([]);
   const [videoStates, setVideoStates] = useState({});
   const [videos, setVideos] = useState([]);

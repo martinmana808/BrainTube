@@ -7,7 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   // Apply theme on initial load
   useEffect(() => {
-    const theme = localStorage.getItem('theme') || 'dark';
+    const theme = localStorage.getItem('theme') || 'light';
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
