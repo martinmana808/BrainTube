@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Eye, FolderDown, FolderUp, Folder, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User, Settings, LogOut, Brain, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trash2, Eye, FolderDown, FolderUp, Folder, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User, Settings, LogOut, Brain, HelpCircle, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
@@ -101,10 +101,10 @@ const SettingsPanel = ({
     const currentCategory = categories.find(c => c.id === channel.categoryId);
 
     return (
-      <div className="relative">
+      <div className="relative flex items-center">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors whitespace-nowrap ${
+          className={`px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors whitespace-nowrap ${
             currentCategory 
               ? 'bg-gray-100 dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-600' 
               : 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
@@ -179,7 +179,9 @@ const SettingsPanel = ({
                     : 'border-transparent opacity-100'
             } ${
                 // Dim others if some are soloed
-                (soloChannelIds.length > 0 && !soloChannelIds.includes(channel.id)) 
+                ((soloChannelIds.length > 0 || soloCategoryIds.length > 0) && 
+                 !soloChannelIds.includes(channel.id) && 
+                 !(channel.categoryId && soloCategoryIds.includes(channel.categoryId)))
                     ? 'opacity-40 grayscale' 
                     : ''
             }`}>
@@ -485,13 +487,13 @@ const SettingsPanel = ({
 
           <div className="flex-1">
             <div className={`flex items-center ${isCollapsed ? 'flex-col gap-' : 'justify-between'} mb-8`}>
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 {!isCollapsed && (
                     <>
                         <label className="block text-xs font-mono text-gray-500 uppercase">Channels [{channels.length}]</label>
                     </>
                 )}
-              </div>
+              </div> */}
               <div className={`flex ${isCollapsed ? 'flex-col' : ''} gap-2`}>
                 {(!isCollapsed && (soloChannelIds.length > 0 || soloCategoryIds.length > 0)) ? (
                   <button 
@@ -512,7 +514,7 @@ const SettingsPanel = ({
                         }`}
                         title="All Channels View"
                         >
-                        {isCollapsed ? <User className="w-3.5 h-3.5" /> : 'All'}
+                        {isCollapsed ? <User className="w-3.5 h-3.5" /> : 'All channels'}
                         </button>
                         <button
                         onClick={() => setViewMode('categories')}
@@ -533,6 +535,48 @@ const SettingsPanel = ({
             
             {viewMode === 'all' ? (
               <div className="">
+                {/* Saved Channel Item (Virtual) in All View */}
+                <div key="saved-category-all" className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-3 group`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div 
+                            className="relative group/avatar cursor-pointer"
+                            onClick={() => onToggleCategorySolo('saved-category')}
+                            onMouseEnter={(e) => {
+                                if (isCollapsed) {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setHoveredChannel({
+                                        id: 'saved-category',
+                                        name: 'Saved Videos',
+                                        top: rect.top,
+                                        left: rect.right + 10
+                                    });
+                                }
+                            }}
+                            onMouseLeave={() => setHoveredChannel(null)}
+                        >
+                            <div className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${
+                                soloCategoryIds.includes('saved-category')
+                                    ? 'bg-teal-100 dark:bg-green-900/30 text-teal-600 dark:text-green-400 border-teal-500 dark:border-green-500 ring-2 ring-teal-500/30 dark:ring-green-500/30 shadow-[0_0_12px_rgba(20,184,166,0.4)] scale-110'
+                                    : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-transparent opacity-100'
+                            } ${
+                                ((soloChannelIds.length > 0 || soloCategoryIds.length > 0) && !soloCategoryIds.includes('saved-category'))
+                                    ? 'opacity-40 grayscale'
+                                    : ''
+                            }`}>
+                                <Heart className={`w-4 h-4 ${soloCategoryIds.includes('saved-category') ? 'fill-current' : ''}`} />
+                            </div>
+                        </div>
+                        
+                        {!isCollapsed && (
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title="Saved Videos">
+                                    Saved
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 {channels.length > 0 ? renderChannelList(channels) : (
                     <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
                         <p className="text-gray-400 dark:text-gray-500 text-xs mb-3">No channels monitored</p>
@@ -547,14 +591,60 @@ const SettingsPanel = ({
               </div>
             ) : (
               <div className="space-y-6">
+                {/* Saved Channel Item (Virtual) */}
+                <div key="saved-category" className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-3 group`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div 
+                            className="relative group/avatar cursor-pointer"
+                            onClick={() => onToggleCategorySolo('saved-category')}
+                            onMouseEnter={(e) => {
+                                if (isCollapsed) {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    setHoveredChannel({
+                                        id: 'saved-category',
+                                        name: 'Saved Videos',
+                                        top: rect.top,
+                                        left: rect.right + 10
+                                    });
+                                }
+                            }}
+                            onMouseLeave={() => setHoveredChannel(null)}
+                        >
+                            <div className={`w-8 h-8 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border-2 transition-all duration-300 ${
+                                soloCategoryIds.includes('saved-category')
+                                    ? 'bg-teal-100 dark:bg-green-900/30 text-teal-600 dark:text-green-400 border-teal-500 dark:border-green-500 ring-2 ring-teal-500/30 dark:ring-green-500/30 shadow-[0_0_12px_rgba(20,184,166,0.4)] scale-110'
+                                    : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-transparent opacity-100'
+                            } ${
+                                ((soloChannelIds.length > 0 || soloCategoryIds.length > 0) && !soloCategoryIds.includes('saved-category'))
+                                    ? 'opacity-40 grayscale'
+                                    : ''
+                            }`}>
+                                <Heart className={`w-4 h-4 ${soloCategoryIds.includes('saved-category') ? 'fill-current' : ''}`} />
+                            </div>
+                        </div>
+                        
+                        {!isCollapsed && (
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title="Saved Videos">
+                                    Saved
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 {/* Categories */}
                 {categories.map(cat => {
                   const isCategoryCollapsed = collapsedCategories.has(cat.id);
+                  const hasActiveChild = groupedChannels[cat.id]?.some(c => soloChannelIds.includes(c.id));
+                  const isDimmed = (soloChannelIds.length > 0 || soloCategoryIds.length > 0) && 
+                                   !soloCategoryIds.includes(cat.id) && 
+                                   !hasActiveChild;
                   
                   if (isCollapsed) {
                       // Compressed View: Just render channels with a spacer
                       return (
-                          <div key={cat.id} className="mb-8">
+                          <div key={cat.id} className={`transition-all duration-300 ${isDimmed ? 'opacity-40 grayscale' : ''}`}>
                              {groupedChannels[cat.id]?.length > 0 && renderChannelList(groupedChannels[cat.id])}
                           </div>
                       );
@@ -562,7 +652,7 @@ const SettingsPanel = ({
 
                   // Expanded View: Render with header and collapse logic
                   return (
-                    <div key={cat.id}>
+                    <div key={cat.id} className={`transition-all duration-300 ${isDimmed ? 'opacity-40 grayscale' : ''}`}>
                       <div className="flex items-center justify-between mb-3 group">
                         <button 
                           onClick={() => toggleCategoryCollapse(cat.id)}
@@ -570,7 +660,7 @@ const SettingsPanel = ({
                         >
                           {isCategoryCollapsed ? <FolderDown className="h-4 w-4" /> : <FolderUp className="h-4 w-4" />}
                           {cat.name}
-                          <span className="text-gray-600">[{groupedChannels[cat.id]?.length || 0}]</span>
+                          {isCategoryCollapsed && <span className="text-gray-600">[{groupedChannels[cat.id]?.length || 0}]</span>}
                         </button>
                         <div className="flex items-center gap-2">
                         <button
@@ -611,11 +701,16 @@ const SettingsPanel = ({
                 })}
 
                 {/* Uncategorized */}
-                <div>
+                <div className={`transition-all duration-300 ${
+                    ((soloChannelIds.length > 0 || soloCategoryIds.length > 0) && 
+                     !groupedChannels.uncategorized.some(c => soloChannelIds.includes(c.id)))
+                    ? 'opacity-40 grayscale'
+                    : ''
+                }`}>
                   {isCollapsed ? (
                       // Compressed View: Just render channels
                       groupedChannels.uncategorized.length > 0 && (
-                          <div className="mb-8">
+                          <div className="mb-10">
                               {renderChannelList(groupedChannels.uncategorized)}
                           </div>
                       )
@@ -626,9 +721,9 @@ const SettingsPanel = ({
                             onClick={() => toggleCategoryCollapse('uncategorized')}
                             className="flex items-center gap-2 mb-3 text-gray-600 dark:text-gray-400 font-mono text-xs uppercase tracking-wider hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
                           >
-                            
+                            {collapsedCategories.has('uncategorized') ? <FolderDown className="h-4 w-4" /> : <FolderUp className="h-4 w-4" />}
                             Uncategorized
-                            <span className="text-gray-600">[{groupedChannels.uncategorized.length}]</span>
+                            {collapsedCategories.has('uncategorized') && <span className="text-gray-600">[{groupedChannels.uncategorized.length}]</span>}
                         </button>
                         <AnimatePresence>
                             {!collapsedCategories.has('uncategorized') && (
@@ -705,7 +800,7 @@ const SettingsPanel = ({
                 <span
                 className={`${
                     theme === 'dark' ? 'translate-x-4' : 'translate-x-1 '
-                } bg-gray-500 inline-block h-3 w-4 transform rounded-full  transition-transform duration-200`}
+                } bg-gray-500 inline-block h-3 w-3 transform rounded-full  transition-transform duration-200`}
                 />
             </button>
 

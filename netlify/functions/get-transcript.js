@@ -11,7 +11,11 @@ export const handler = async (event, context) => {
   }
 
   try {
-    const youtube = await Innertube.create();
+    const youtube = await Innertube.create({
+        fetch: (input, init) => {
+            return fetch(input, init);
+        }
+    });
     const info = await youtube.getInfo(videoId);
     const transcriptData = await info.getTranscript();
 

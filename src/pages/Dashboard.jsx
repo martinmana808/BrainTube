@@ -471,10 +471,18 @@ function Dashboard() {
     // 1. Solo Filter (Channels OR Categories)
     if (soloChannelIds.length > 0 || soloCategoryIds.length > 0) {
       filtered = filtered.filter(v => {
+        // Special handling for Saved Category
+        if (soloCategoryIds.includes('saved-category')) {
+            if (videoStates[v.id]?.saved) return true;
+        }
+
         const channel = channels.find(c => c.id === v.channelId);
         const isChannelSolo = soloChannelIds.includes(v.channelId);
         const isCategorySolo = channel && channel.categoryId && soloCategoryIds.includes(channel.categoryId);
-        return isChannelSolo || isCategorySolo;
+        
+        // If we are filtering by Saved, we might want to ONLY show saved, or show saved AND other soloed things.
+        // The current logic is OR, so it will show if it matches ANY solo condition.
+        return isChannelSolo || isCategorySolo || (soloCategoryIds.includes('saved-category') && videoStates[v.id]?.saved);
       });
     }
 
@@ -488,21 +496,31 @@ function Dashboard() {
     }
 
     return filtered;
-  }, [videos, soloChannelIds, soloCategoryIds, searchQuery, channels]);
+  }, [videos, soloChannelIds, soloCategoryIds, searchQuery, channels, videoStates]); // Added videoStates dependency
 
   const todayVideos = activeVideos.filter(v => {
-    const isSaved = videoStates[v.id]?.saved;
-    return isToday(parseISO(v.publishedAt)) && !isSaved;
+    // If Saved category is active, we might want to show saved videos here too if they are from today?
+    // Or maybe just let them flow naturally.
+    // The previous logic excluded saved videos from Today if they were saved.
+    // "return isToday(parseISO(v.publishedAt)) && !isSaved;"
+    // Now that Saved is a category, maybe we don't need to hide them from Today?
+    // But the user said "Saved videos can live anywhere".
+    // Let's keep the exclusion for now to avoid duplicates if they are shown in a "Saved" column, 
+    // BUT wait, we removed the Saved column section.
+    // So they MUST appear in the main lists if they are to be seen.
+    // If 'saved-category' is soloed, 'activeVideos' ONLY contains saved videos (and other soloed stuff).
+    // So they will appear in Today or Past based on date.
+    
+    // However, if we are NOT soloing Saved, they should just appear in their respective columns.
+    // The original logic hid them from Today if saved.
+    // "Saved videos can live anywhere" implies they should just be treated as normal videos that happen to be saved.
+    // So I will REMOVE the "!isSaved" check.
+    return isToday(parseISO(v.publishedAt));
   });
   
   const pastVideos = activeVideos.filter(v => {
     const date = parseISO(v.publishedAt);
-    const isSaved = videoStates[v.id]?.saved;
-    
-    // Always include saved videos in this column (which has the Saved section)
-    if (isSaved) return true;
-
-    // Otherwise, include if it's NOT today AND within last 7 days
+    // Same here, remove special handling for saved videos
     return !isToday(date) && isWithinInterval(date, { start: sevenDaysAgo, end: today });
   });
 
@@ -528,7 +546,11 @@ function Dashboard() {
     try {
       // 1. Fetch Transcript
       const response = await fetch(`/.netlify/functions/get-transcript?videoId=${video.id}`);
-      if (!response.ok) throw new Error('Failed to fetch transcript');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Transcript fetch failed:', errorData);
+        throw new Error(errorData.details || 'Failed to fetch transcript');
+      }
       const { transcript } = await response.json();
       
       if (!transcript) throw new Error('No transcript available');
@@ -600,12 +622,12 @@ function Dashboard() {
         {/* Right Column: Past 7 Days */}
         <div className="flex-1 h-full min-w-0">
           <VideoColumn 
-            title="Past 7 Days & Saved" 
+            title="Past 7 Days" 
             videos={pastVideos} 
             emptyMessage="No recent videos"
             loading={loading}
             showBin={false}
-            showSaved={true}
+            showSaved={false} // Changed to false
             searchQuery={searchQuery} // Pass for highlighting if we want, or just to trigger updates
             {...commonProps}
           />
